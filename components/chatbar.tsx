@@ -1,4 +1,4 @@
-import {useState} from "react"
+import React, {useState} from "react"
 
 export default function ChatBar() {
 
@@ -6,7 +6,10 @@ export default function ChatBar() {
   const [message, setMessage] = useState<string | null >("")
   
  
-  const trackMessage = () => {
+  const trackMessage = (e :React.onChange<HTMLInputElement>) => {
+    setTimeout(() => {
+      
+    }, 500);
 
   }
 
