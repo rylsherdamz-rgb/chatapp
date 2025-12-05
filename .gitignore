@@ -11,8 +11,12 @@
 !.yarn/releases
 !.yarn/versions
 
+credentials.txt
+
 # testing
 /coverage
+
+/testchat/*
 
 # next.js
 /.next/
