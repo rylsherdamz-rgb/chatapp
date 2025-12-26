@@ -5,6 +5,7 @@ import ChatRoom from "@/components/chatRoom";
 import SideBar from "@/components/sidebar"
 import SigUpModal from "@/components/SignUpModal"
 import {io} from "socket.io-client" 
+import SignUpModal from "@/components/SignUpModal";
  
 export default function Home() {
 
@@ -26,13 +27,13 @@ export default function Home() {
       <SideBar />
       </div>
 
-      {
+      {/* {
        username && <div className="w-100 h-100 absolute top-0 border-1 bg-black"> 
-        <SignUpModal />
+       <SignUpModal />
       </div> 
-    }
+    } */}
 
-      <div className=" h-full ml-20">
+      <div className=" h-full  md:ml-20">
         <ChatRoom />
       </div>
 
