@@ -4,23 +4,37 @@ import {useEffect, useState} from "react"
 import ChatRoom from "@/components/chatRoom";
 import SideBar from "@/components/sidebar"
 import SigUpModal from "@/components/SignUpModal"
-import {io} from "socket.io-client" 
 import SignUpModal from "@/components/SignUpModal";
+import { socketClient } from "@/lib/socketClient";
  
 export default function Home() {
 
-  const [username, setUsername] = useState(true)
+  const [username, setUsername] = useState<any >("")
+  const [showModal, setShowModal] = useState<boolean>(true)
 
+  const handleUserSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    socketClient.emit("user connected",username)
+    setShowModal(false)
+  }
 
- useEffect(() => {
+  return  <div className="w-full h-screen   relative">
 
+    
+   { showModal && <div className="w-[80%] absolute mx-[10%] top-10 shadow-amber-200 h-[40vh] bg-white">
+    <form onSubmit={handleUserSignUp}
+       className="w-full h-full px-5 flex-col justify-center items-center gap-y-2 py-2" >
+      <label className="text-black" htmlFor="">Username</label>
+      <input className="border rounded-xl border-gray-600 focus:outline-none text-black px-1" type="text" name="" id=""
+      value={username} 
+      onChange={(e) => setUsername(e.target.value)}
+      />
+      <button className="text-black my-3 mx-5" type="submit">Enter</button>
+   </form>
 
-  }, []) 
-
-
-  return  <div className="w-full h-screen  relative">
-
-      <div className="w-20 h-full absolute">
+    </div>
+   } 
+      <div className="w-20 h-full max-sm:hidden ">
         {/*add thte sidebarherej
         add things for this to be more responsive
         */}
@@ -33,7 +47,7 @@ export default function Home() {
       </div> 
     } */}
 
-      <div className=" h-full  md:ml-20">
+      <div className=" w-full h-full  md:ml-20">
         <ChatRoom />
       </div>
 
