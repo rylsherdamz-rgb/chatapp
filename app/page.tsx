@@ -4,7 +4,6 @@ import {useEffect, useState} from "react"
 import ChatRoom from "@/components/chatRoom";
 import SideBar from "@/components/sidebar"
 import SigUpModal from "@/components/SignUpModal"
-import SignUpModal from "@/components/SignUpModal";
 import { socketClient } from "@/lib/socketClient";
  
 export default function Home() {
