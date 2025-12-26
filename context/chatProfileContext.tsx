@@ -1,13 +1,13 @@
 import React, { Children, createContext, useState } from "react";
 
-type user =  {
+export type user =  {
     id : string
     username : string
 }
 
 
 
-interface AuthContextType {
+export interface AuthContextType {
     username : user | null
     setUsername : React.Dispatch<React.SetStateAction<user | null>>
     room : string | null
