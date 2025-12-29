@@ -20,6 +20,10 @@ export default function JoinRoom() {
     const id = crypto.randomUUID()
     const roomId = room 
     socketClient.emit("username",username,id )
+    socketClient.emit("join room", room)
+    socketClient.on("join room", (data) => {
+      data
+    }) 
     // use a better storage for the id of the user
     setShowModal(false)
     router.push(`/room/ ${roomId}`)
@@ -51,13 +55,13 @@ export default function JoinRoom() {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-600">Username</label>
+          <label className="text-sm text-gray-600">Enter Room ID</label>
           <input
             className="rounded-xl border border-gray-300 px-3 py-2 text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
             type="text"
             value={room}
             onChange={(e) => setRoom(e.target.value)}
-            placeholder="Your name"
+            placeholder="Your Room ID"
             required
           />
         </div>
