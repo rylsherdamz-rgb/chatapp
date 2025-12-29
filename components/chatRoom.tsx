@@ -15,7 +15,6 @@ export default function ChatRoom() {
    <button className="bg-gray-900 w-10 flex justify-center items-center h-10 rounded-full" >
        <Plus color="#fff" size={24} /> 
       </button>
-
         </div>
 
         <ChatBar />

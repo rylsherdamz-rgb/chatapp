@@ -13,9 +13,13 @@ export default function Room() {
 
   const {username, setRoom, setUsername, room} = context
 
-  return  <div className="w-full h-screen ">
+  return  <div className="w-full  h-screen flex flex-col ">
+    <div className="w-full text-white h-[60%]">
+      <p className="text-xl text-green-300">
+      {username}
+      </p>
+    </div>
     <ChatRoom />
-    
     </div>
 }
 

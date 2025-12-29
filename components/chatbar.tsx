@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import type { Message } from "@/context/chatProfileContext";
 import {Send} from "lucide-react"
 import { AuthContext } from "@/context/chatProfileContext";
 import { socketClient } from "../lib/socketClient";
@@ -8,10 +9,17 @@ export default function ChatBar() {
   const context = useContext(AuthContext)
   if (!context) return;
 
-  const {setMessages, messages} = context
-  const [message, setMessage] = useState<string>("")
+  const {setMessages, messages, userId, room, username} = context
+  const [message, setMessage] = useState<string >()
   const trackMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const Inputmessage = e.target.value;
+    const Inputmessage : Message = {
+      id : crypto.randomUUID(),
+      text: e.target.value,
+      userId : userId,
+      username : username ,
+      roomId : room,
+      createdAt : Date.now(),
+    }
 
       setMessages((prev) => [...prev,Inputmessage]);
   };
