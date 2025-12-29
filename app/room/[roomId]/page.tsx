@@ -14,6 +14,7 @@ export default function Room() {
   const {username, setRoom, setUsername, room} = context
 
   return  <div className="w-full h-screen ">
+    <ChatRoom />
     
     </div>
 }

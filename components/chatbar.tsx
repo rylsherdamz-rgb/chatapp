@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import {Send} from "lucide-react"
+import { AuthContext } from "@/context/chatProfileContext";
 import { socketClient } from "../lib/socketClient";
+import { useContext } from "react";
 
 export default function ChatBar() {
-  const [message, setMessage] = useState<string  >("");
+  const context = useContext(AuthContext)
+  if (!context) return;
 
+  const {setMessages, messages} = context
+  const [message, setMessage] = useState<string>("")
   const trackMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const message = e.target.value;
+    const Inputmessage = e.target.value;
 
-      setMessage(message);
+      setMessages((prev) => [...prev,Inputmessage]);
   };
-
   const sendMessage = () => {
      socketClient.emit("message sent", message) 
      setMessage("")
@@ -18,6 +22,7 @@ export default function ChatBar() {
 
   return (
     <div className="w-full  flex mx-5 my-2 border rounded-xl bg-gray-900">
+       
       <input
         onChange={(e) => trackMessage(e)}
         value={message}

@@ -1,42 +1,64 @@
 import { socketClient } from "@/lib/socketClient"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useContext } from "react"
 import {  AuthContext } from "@/context/chatProfileContext"
-import { AuthContextType } from "@/context/chatProfileContext"
-import type { user } from "@/context/chatProfileContext"
-
+import { X } from "lucide-react"
 
 
 export default function SignUpModal() {
-
+  const router = useRouter()
   const context = useContext(AuthContext)
-   
   if (!context) {
      throw Error("this is outside the Provider")
   }
-
   const {username, setUsername, room, setRoom} = context
-  const [shosModal, setShowModal]  = useState<boolean>(true)
+  const [showModal, setShowModal]  = useState<boolean>(true)
 
-const handleUserSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleUserSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    socketClient.emit("username",username)
+    const id = crypto.randomUUID()
+    const roomId = crypto.randomUUID()
+    socketClient.emit("username",username,id )
+    // use a better storage for the id of the user
     setShowModal(false)
+    router.push(`/room/ ${roomId}`)
   }
 
-  return <div className="w-full h-full bg-green-200">
-<div className="w-[80%] absolute mx-[10%] top-10 shadow-amber-200 h-[40vh] bg-white">
-    <form onSubmit={handleUserSignUp}
-       className="w-full h-full px-5 flex-col justify-center items-center gap-y-2 py-2" >
-      <label className="text-black" htmlFor="">Username</label>
-      <input className="border rounded-xl border-gray-600 focus:outline-none text-black px-1" type="text" name="" id=""
-      value={username as unknown as string} 
-      onChange={(e) => setUsername(e.target.value as unknown as user)}
-      />
-      <button className="text-black my-3 mx-5" type="submit">Enter</button>
-   </form>
+ return  !showModal ? null : (
+  <div className=" inset-0 z-50 flex items-center justify-center  fixed">
+    
+    <div className="w-[90%] max-w-md rounded-2xl bg-white shadow-xl relative">
+  <button onClick={() => setShowModal(false)} className="focus:outline-none flex justify-center items-center top-2 right-2 w-10 h-10 absolute rounded-xl">
+      <X size={26} color="#000"/>
+    </button>
+      <form
+        onSubmit={handleUserSignUp}
+        className="flex h-full flex-col justify-center gap-6 px-6 py-10"
+      >
+        <h2 className="text-center text-xl font-semibold text-black">
+          Enter Username
+        </h2>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm text-gray-600">Username</label>
+          <input
+            className="rounded-xl border border-gray-300 px-3 py-2 text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Your name"
+            required
+          />
+        </div>
 
+        <button
+          type="submit"
+          className="mt-2 rounded-xl bg-black py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+        >
+          Enter
+        </button>
+      </form>
     </div>
-
   </div>
+)
 }
