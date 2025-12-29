@@ -10,21 +10,21 @@ export default function ChatBar() {
   if (!context) return;
 
   const {setMessages, messages, userId, room, username} = context
-  const [message, setMessage] = useState<string >()
+  const [message, setMessage] = useState<string >("")
   const trackMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const Inputmessage : Message = {
+     setMessage(e.target.value) 
+  };
+  const sendMessage = () => {
+  const Inputmessage : Message = {
       id : crypto.randomUUID(),
-      text: e.target.value,
+      text: message as string,
       userId : userId,
       username : username ,
       roomId : room,
       createdAt : Date.now(),
     }
-
       setMessages((prev) => [...prev,Inputmessage]);
-  };
-  const sendMessage = () => {
-     socketClient.emit("message sent", message) 
+     socketClient.emit("message sent", {roomId: room, message}) 
      setMessage("")
   };
 

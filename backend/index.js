@@ -6,16 +6,14 @@ app.use(express.json())
 const httpServer = http.createServer(app)
 const ServerSocket =  new Server(httpServer, {
     cors : {
-        origin : "http://localhost:300",
-        methods : ["GET", "METHOD"]
+        origin : "http://localhost:3000",
+        methods : ["GET", "POST"]
     }
 })
 ServerSocket.on("connection", (socket) => {
 
-    socket.on("username", (username, id) => {
-        socket.username =username
-        socket.id = id
-        console.log(socket.id, socket.username)
+    socket.on("username", (username) => {
+        socket.username = username
     })
 
 
@@ -25,13 +23,18 @@ ServerSocket.on("connection", (socket) => {
             userId: socket.id,
             user: socket.username,
             roomId
-        })
+        } 
+    )
+    console.log()    
     })
     socket.on("message sent", ({roomId, message}) => {
-        ServerSocket.to(roomId).emit("message received", {
-            userId : socket.id,
+
+            socket.message = message
+        socket.to(roomId).emit("message received", {
+            userId: socket.id,
             user : socket.username,
-            message
+            roomId,
+            message : socket.message
         })
     })
     socket.on("leave room", (roomId) => {
@@ -40,8 +43,8 @@ ServerSocket.on("connection", (socket) => {
     })
 
     socket.on("disconnect", () => {
-        if (socket.user) {
-            socket.broadcast.emit("Leave", socket.io)
+        if (socket.username) {
+            socket.broadcast.emit("Leave", socket.username)
         }
     })
 })

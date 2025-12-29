@@ -17,16 +17,13 @@ export default function SignUpModal() {
 
   const handleUserSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const id = crypto.randomUUID()
     const roomId = crypto.randomUUID()
-    socketClient.emit("username",username,id )
-    socketClient.on("join room", (data) => {
-      console.log(data)
-    } )
-    
+    setRoom(roomId)
+    socketClient.emit("username",username )
+    socketClient.emit("join room", roomId)
     // use a better storage for the id of the user
     setShowModal(false)
-    router.push(`/room/ ${roomId}`)
+    router.push(`/room/${roomId}`)
   }
 
  return  !showModal ? null : (
