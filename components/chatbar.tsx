@@ -29,7 +29,7 @@ export default function ChatBar() {
   };
 
   return (
-    <div className="w-full  flex mx-5 my-2 border rounded-xl bg-gray-900">
+    <div className="w-full  flex mx-1 my-2 border rounded-xl bg-white text-black">
        
       <input
         onChange={(e) => trackMessage(e)}
