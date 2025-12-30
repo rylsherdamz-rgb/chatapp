@@ -1,6 +1,7 @@
 'use client'
 
 import SignUpModal from "@/components/SignUpModal"
+import Footer from "@/components/Footer"
 import JoinRoom from "@/components/JoinRoom"
 import AutomaticMatching from "@/components/AutomaticMatching"
 import { useState, useEffect, useRef } from "react"
@@ -68,9 +69,8 @@ export default function LandingPage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="mt-20 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} Chatify. All rights reserved.
-      </footer>
-    </div>
+      
+      <Footer />
+   </div>
   )
 }
