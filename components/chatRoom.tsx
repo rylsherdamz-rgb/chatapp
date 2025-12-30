@@ -17,7 +17,6 @@ export default function ChatRoom() {
        <Plus color="#fff" size={24} /> 
       </button>
         </div>
-
         <ChatBar />
       </div>
     </div>
