@@ -1,6 +1,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
+import { v4 } from "uuid"
 const app = express()
 app.use(express.json())
 const httpServer = http.createServer(app)
@@ -10,7 +11,43 @@ const ServerSocket =  new Server(httpServer, {
         methods : ["GET", "POST"]
     }
 })
+
+
+
+let pendingRoom = null
 ServerSocket.on("connection", (socket) => {
+
+
+  socket.on("auto join", (username, id) => {
+        socket.username = username
+    if (!pendingRoom) {
+        pendingRoom = id
+        socket.join(pendingRoom)
+        socket.to(id).emit("user waiting", {
+            userId : socket.id,
+            user : socket.username,
+            roomId : pendingRoom,
+            status: "waiting"
+        })
+        
+    }else {
+            roomId = pendingRoom
+            const room = ServerSocket.adapter.rooms.get(roomId)
+            numberOfClient = room ? room.size :0 
+            // adjust the size to have bigger room or just for the two people
+
+            if (numberOfClient < 2) { 
+                socket.join(roomId)
+                pendingRoom = null
+                socket.to(roomId).emit("room-ready", {roomId, users: Array.from(room) })
+            }
+            else {
+                socket.emit("room full ", roomId)
+            }
+        }
+ 
+  })
+
 
     socket.on("username", (username) => {
         socket.username = username
@@ -28,7 +65,6 @@ ServerSocket.on("connection", (socket) => {
     console.log()    
     })
     socket.on("message sent", ({roomId, message}) => {
-
             socket.message = message
         socket.to(roomId).emit("message received", {
             userId: socket.id,

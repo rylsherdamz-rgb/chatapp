@@ -21,6 +21,10 @@ export default function Room() {
     socketClient.on("user joined", (data) => {
    });
 
+   socketClient.on("user waiting", ( data) => {
+    console.log(data)
+   })
+
     socketClient.on("message received", (data) => {
       const newMessage: Message = {
         id: crypto.randomUUID(),

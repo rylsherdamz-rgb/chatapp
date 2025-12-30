@@ -2,13 +2,14 @@
 
 import SignUpModal from "@/components/SignUpModal"
 import JoinRoom from "@/components/JoinRoom" 
+import AutomaticMatching from "@/components/AutomaticMatching"
 import { useState } from "react"
-
 
 
 export default function Home(){
   const [visible, setVisible] = useState<boolean>(false)
   const [show, setShow] = useState<boolean>(false)
+  const [invisble, setInvisible] = useState<boolean>(false)
 const HandleButtonCreate = () => {
       if (show) {
         setShow(false)
@@ -21,6 +22,13 @@ const HandleButtonJoin = () => {
         setVisible(false)
       }else {
         setVisible(true)
+      }
+}
+const HandleButtonAutomatic = () => {
+      if (invisble) {
+        setInvisible(false)
+      }else {
+        setInvisible(true)
       }
 }
   
@@ -37,10 +45,16 @@ const HandleButtonJoin = () => {
       className="bg-white text-black px-2 py-1 rounded-lg font-semibold">
     Join a room
       </button>
+      <button 
+      onClick={HandleButtonAutomatic}
+      className="bg-white text-black px-2 py-1 rounded-lg font-semibold">
+    Join a room
+      </button>
     </div>
 
   {show && <SignUpModal />}
   {visible && <JoinRoom />}
-
+  {invisble && <AutomaticMatching />}
+   
   </div>
 }
