@@ -16,6 +16,8 @@ const ServerSocket =  new Server(httpServer, {
 
 
 let pendingRoom = null
+
+
 ServerSocket.on("connection", (socket) => {
 
 
@@ -45,6 +47,7 @@ ServerSocket.to(roomId).emit("room-ready", { roomId, users });
             else {
                 socket.emit("room full ", roomId)
             }
+            pendingRoom = null
         }
  
   })
