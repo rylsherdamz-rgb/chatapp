@@ -1,5 +1,6 @@
 import express from "express"
 import http from "http"
+import { ServerCrashIcon } from "lucide-react"
 import { Server } from "socket.io"
 import { v4 } from "uuid"
 const app = express()
@@ -18,12 +19,12 @@ let pendingRoom = null
 ServerSocket.on("connection", (socket) => {
 
 
-  socket.on("auto join", (username, id) => {
+  socket.on("auto join", (username) => {
         socket.username = username
     if (!pendingRoom) {
-        pendingRoom = id
+        pendingRoom = v4() 
         socket.join(pendingRoom)
-        socket.to(id).emit("user waiting", {
+        socket.emit("user waiting", {
             userId : socket.id,
             user : socket.username,
             roomId : pendingRoom,
@@ -31,15 +32,15 @@ ServerSocket.on("connection", (socket) => {
         })
         
     }else {
-            roomId = pendingRoom
-            const room = ServerSocket.adapter.rooms.get(roomId)
-            numberOfClient = room ? room.size :0 
+            const roomId = pendingRoom
+            const users = ServerSocket.sockets.adapter.rooms.get(roomId) 
+         const    numberOfClient = users ? users.size :0 
             // adjust the size to have bigger room or just for the two people
 
             if (numberOfClient < 2) { 
                 socket.join(roomId)
                 pendingRoom = null
-                socket.to(roomId).emit("room-ready", {roomId, users: Array.from(room) })
+ServerSocket.to(roomId).emit("room-ready", { roomId, users });
             }
             else {
                 socket.emit("room full ", roomId)

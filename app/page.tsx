@@ -48,7 +48,7 @@ const HandleButtonAutomatic = () => {
       <button 
       onClick={HandleButtonAutomatic}
       className="bg-white text-black px-2 py-1 rounded-lg font-semibold">
-    Join a room
+    Instant Join
       </button>
     </div>
 
