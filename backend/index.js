@@ -1,6 +1,5 @@
 import express from "express"
 import http from "http"
-import { ServerCrashIcon } from "lucide-react"
 import { Server } from "socket.io"
 import { v4 } from "uuid"
 const app = express()
@@ -13,13 +12,27 @@ const ServerSocket =  new Server(httpServer, {
     }
 })
 
-
-
 let pendingRoom = null
-
 
 ServerSocket.on("connection", (socket) => {
 
+    socket.on("general", () => {
+        socket.username = v4() 
+        socket.join("general")
+        socket.emit("joined general",{
+            username : socket.username,
+            userId : socket.id,
+            message : "you join the general room",
+            roomId : "general"
+        })
+    })
+
+   socket.on("delete message for all",({messageId, username, roomId}) => {
+               socket.to(roomId).emit("message delete", {
+                username,
+                messageId,
+               })
+    } )
 
   socket.on("auto join", (username) => {
         socket.username = username
@@ -32,6 +45,7 @@ ServerSocket.on("connection", (socket) => {
             roomId : pendingRoom,
             status: "waiting"
         })
+
         
     }else {
             const roomId = pendingRoom
@@ -70,11 +84,12 @@ ServerSocket.to(roomId).emit("room-ready", { roomId, users });
     })
     socket.on("message sent", ({roomId, message}) => {
             socket.message = message
-        socket.to(roomId).emit("message received", {
+            socket.to(roomId).emit("message received", {
             userId: socket.id,
             user : socket.username,
             roomId,
-            message : socket.message
+            message : socket.message,
+            messageId : v4() 
         })
     })
     socket.on("leave room", (roomId) => {
