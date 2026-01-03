@@ -1,7 +1,3 @@
-Here’s a clean, professional **README.md** version for **SnapTalk**, ready to drop into your repo 👇
-
----
-
 # 📱 SnapTalk
 
 **SnapTalk** is a fast, real-time chat app built for instant conversations that feel effortless. Whether you’re messaging friends, collaborating with a team, or jumping into group chats, SnapTalk keeps communication smooth, secure, and always in sync.

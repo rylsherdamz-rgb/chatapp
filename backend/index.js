@@ -21,7 +21,7 @@ ServerSocket.on("connection", (socket) => {
         socket.join("general")
         socket.emit("joined general",{
             username: socket.username,
-            room : roomId,
+            room : "general",
             userId : "System",
             message : ` ${socket.username} has joined the room`,
             messageId : v4(),
