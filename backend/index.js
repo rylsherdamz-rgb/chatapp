@@ -58,7 +58,14 @@ ServerSocket.on("connection", (socket) => {
             if (numberOfClient < 2) { 
                 socket.join(roomId)
                 pendingRoom = null
-            ServerSocket.to(roomId).emit("room-ready", { roomId, users });
+            ServerSocket.to(roomId).emit("room-ready", { 
+            username: socket.username,
+            roomId ,
+            userId : "System",
+            message : ` ${socket.username} has joined the room`,
+            messageId : v4(),
+            createdAt : Date.now()
+             });
             }
             else {
                 socket.emit("room full ", roomId)
@@ -68,7 +75,8 @@ ServerSocket.on("connection", (socket) => {
  
   })
 
-    socket.on("join room", (roomId) => {
+    socket.on("join room", ({roomId, username}) => {
+        socket.username = username
         socket.join(roomId)
         socket.to(roomId).emit("user joined", {
             username: socket.username,

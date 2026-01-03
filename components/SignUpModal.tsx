@@ -19,8 +19,7 @@ export default function SignUpModal() {
     e.preventDefault()
     const roomId = crypto.randomUUID()
     setRoom(roomId)
-    socketClient.emit("username",username )
-    socketClient.emit("join room", roomId)
+    socketClient.emit("join room", {roomId , username})
     // use a better storage for the id of the user
     setShowModal(false)
     router.push(`/room/${roomId}`)

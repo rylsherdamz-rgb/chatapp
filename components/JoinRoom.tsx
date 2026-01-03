@@ -17,8 +17,7 @@ export default function JoinRoom() {
   const handleUserSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const roomId = room 
-    socketClient.emit("username",username )
-    socketClient.emit("join room", room)
+    socketClient.emit("join room", {roomId, username})
     // use a better storage for the id of the user
     setShowModal(false)
     router.push(`/room/${roomId}`)
