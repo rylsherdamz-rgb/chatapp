@@ -8,6 +8,7 @@ export type Message = {
   roomId: string;
   createdAt: number;
   textId : string
+  type : string
 };
 export interface AuthContextType {
     username : string

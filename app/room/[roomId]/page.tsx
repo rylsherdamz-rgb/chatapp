@@ -47,6 +47,7 @@ export default function Room() {
         roomId: data.roomId,
         createdAt: Date.now(),
         textId: crypto.randomUUID(),
+        type :"System"
       };
 
       setMessages((prev) => [...prev, systemMessage]);
@@ -61,6 +62,7 @@ export default function Room() {
         roomId: data.roomId,
         createdAt: Date.now(),
         textId: crypto.randomUUID(),
+        type : "System"
       };
 
       setMessages((prev) => [...prev, systemMessage]);
@@ -76,6 +78,7 @@ export default function Room() {
         roomId: data.roomId,
         createdAt: Date.now(),
         textId: data.messageId,
+        type : "user"
       };
 
       setMessages((prev) => [...prev, newMessage]);
@@ -85,6 +88,7 @@ export default function Room() {
       socketClient.off("user joined");
       socketClient.off("user-ready");
       socketClient.off("message received");
+      socketClient.off("room-ready")
     };
   }, [setMessages]);
 
@@ -118,7 +122,7 @@ export default function Room() {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg) => {
           const isMe = msg.userId === userId;
-          const isSystem = msg.userId === "System";
+          const isSystem = msg.type === "System";
 
           // ✅ SYSTEM MESSAGE (CENTERED)
           if (isSystem) {

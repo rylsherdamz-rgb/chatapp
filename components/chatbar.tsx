@@ -22,7 +22,8 @@ export default function ChatBar() {
       username : username ,
       roomId : room,
       createdAt : Date.now(),
-      textId : crypto.randomUUID()
+      textId : crypto.randomUUID(),
+      type : "user"
     }
       setMessages((prev) => [...prev,Inputmessage]);
      socketClient.emit("message sent", {roomId: room, message}) 

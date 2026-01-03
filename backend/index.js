@@ -23,6 +23,7 @@ ServerSocket.on("connection", (socket) => {
             username: socket.username,
             room : "general",
             userId : "System",
+            userIdReal : v4(),
             message : ` ${socket.username} has joined the room`,
             messageId : v4(),
             createdAt : Date.now()
