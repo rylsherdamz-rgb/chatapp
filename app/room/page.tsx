@@ -58,7 +58,6 @@ export default function GeneralRoom() {
     return <div className="w-full h-screen  flex flex-col  bg-white ">
         <div className="w-30 flex justify-center  rounded-4xl items-center  h-[10vh] px-5 py-5">
             <p className="text-black text-2xl">General</p>
-            {userId }
         </div>
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

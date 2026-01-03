@@ -20,10 +20,12 @@ ServerSocket.on("connection", (socket) => {
         socket.username = v4() 
         socket.join("general")
         socket.emit("joined general",{
-            username : socket.username,
-            userId : socket.id,
-            message : "you join the general room",
-            roomId : "general"
+            username: socket.username,
+            room : roomId,
+            userId : "System",
+            message : ` ${socket.username} has joined the room`,
+            messageId : v4(),
+            createdAt : Date.now()
         })
     })
 
@@ -56,7 +58,7 @@ ServerSocket.on("connection", (socket) => {
             if (numberOfClient < 2) { 
                 socket.join(roomId)
                 pendingRoom = null
-ServerSocket.to(roomId).emit("room-ready", { roomId, users });
+            ServerSocket.to(roomId).emit("room-ready", { roomId, users });
             }
             else {
                 socket.emit("room full ", roomId)
@@ -66,21 +68,17 @@ ServerSocket.to(roomId).emit("room-ready", { roomId, users });
  
   })
 
-
-    socket.on("username", (username) => {
-        socket.username = username
-    })
-
-
     socket.on("join room", (roomId) => {
         socket.join(roomId)
         socket.to(roomId).emit("user joined", {
-            userId: socket.id,
-            user: socket.username,
-            roomId
+            username: socket.username,
+            room : roomId,
+            userId : "System",
+            message : ` ${socket.username} has joined the room`,
+            messageId : v4(),
+            createdAt : Date.now()
         } 
     )
-    console.log()    
     })
     socket.on("message sent", ({roomId, message}) => {
             socket.message = message
@@ -94,7 +92,14 @@ ServerSocket.to(roomId).emit("room-ready", { roomId, users });
     })
     socket.on("leave room", (roomId) => {
         socket.leave(roomId)
-        socket.to(roomId).emit("user leave", socket.username)
+        socket.to(roomId).emit("user leave", {
+            username: socket.username,
+            room : roomId,
+            userId : "System",
+            message : ` ${socket.username} has leave the room`,
+            messageId : v4(),
+            createdAt : Date.now()
+        })
     })
 
     socket.on("disconnect", () => {

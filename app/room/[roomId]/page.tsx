@@ -14,6 +14,11 @@ export default function Room() {
   const { username, room, messages, setMessages, userId } = context;
   const [copy, setCopy] = useState<boolean>(false)
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const leaveRoom = () => {
+    socketClient.emit("leave")
+  }
+
   const copyRoomId = async () => {
     try {
     await navigator.clipboard.writeText(room)
