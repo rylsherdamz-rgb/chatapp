@@ -5,7 +5,7 @@ import Footer from "@/components/Footer"
 import JoinRoom from "@/components/JoinRoom"
 import Navigation from "@/components/Navigation"
 import AutomaticMatching from "@/components/AutomaticMatching"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MessageCircle, Users, Zap, Hash } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -14,6 +14,10 @@ export default function LandingPage() {
   const [showJoin, setShowJoin] = useState(false)
   const [showAuto, setShowAuto] = useState(false)
   const router = useRouter()
+
+  function handleGeneralRoom() {
+    router.push("/room")
+  }
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -34,7 +38,7 @@ export default function LandingPage() {
           <div className="pt-6">
             <button
               className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:scale-[1.03] transition"
-              onClick={() => router.push("/room")}
+              onClick={handleGeneralRoom}
             >
               <Hash size={22} />
               Join General Chat

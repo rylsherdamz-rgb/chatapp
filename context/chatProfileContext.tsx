@@ -7,6 +7,7 @@ export type Message = {
   username: string;
   roomId: string;
   createdAt: number;
+  textId : string
 };
 export interface AuthContextType {
     username : string

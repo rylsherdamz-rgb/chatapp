@@ -23,6 +23,15 @@ export default function Room() {
       console.log(err)
     }
  }
+  const deleteMessage = (messageId : string, type : string) => {
+     if (type == "me") {
+        setMessages(prev => prev.filter(
+          message => message.textId != messageId
+        ))
+     } 
+  }
+
+
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -36,7 +45,6 @@ export default function Room() {
    socketClient.on("user waiting", ( data) => {
     console.log(data)
    })
-
     socketClient.on("message received", (data) => {
       const newMessage: Message = {
         id: crypto.randomUUID(),
@@ -45,16 +53,16 @@ export default function Room() {
         text: data.message,
         roomId: data.roomId,
         createdAt: Date.now(),
+        textId  : data.messageId
       };
       setMessages((prev) => [...prev, newMessage]);
     });
-
     return () => {
       socketClient.off("user joined");
+      socketClient.off("user waiting")
       socketClient.off("message received");
     };
   }, [setMessages]);
-
   return (
     <div className="w-full h-screen flex flex-col bg-gray-100">
       {/* Header */}
@@ -87,6 +95,10 @@ export default function Room() {
               >
                 {msg.text}
               </div>
+<button
+              onClick={() => deleteMessage(msg.textId, "me")}
+        > delete this</button>
+     
               {isMe && (
                 <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold ml-2">
                   {msg.username?.charAt(0).toUpperCase()}
