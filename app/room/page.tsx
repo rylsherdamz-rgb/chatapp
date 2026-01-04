@@ -5,14 +5,16 @@ import ChatRoom from "@/components/chatRoom"
 import { AuthContext } from "@/context/chatProfileContext";
 import type {Message} from "@/context/chatProfileContext"
 import { Video, Phone, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 
 export default function GeneralRoom() {
 // Scroll to bottom when messages change
 
     const context = useContext(AuthContext)
+    const router = useRouter()
     if (!context) return;
-    const {messages, userId, setMessages, setRoom, setUserId, setUsername} = context
+    const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,6 +46,23 @@ export default function GeneralRoom() {
 
       setMessages((prev) => [...prev, systemMessage]);
    });
+ socketClient.on("user leave", (data) => {
+      setRoom(data.roomId)
+      setUserId(data.userId)
+      setUsername(data.username)
+      const systemMessage: Message = {
+        id: crypto.randomUUID(),
+        userId: data.userId,
+        username:data.username, 
+        text: `${data.username} leave the room`,
+        roomId: data.roomId,
+        createdAt: Date.now(),
+        textId: crypto.randomUUID(),
+        type : "System"
+      };
+
+      setMessages((prev) => [...prev, systemMessage]);
+   });
     socketClient.on("message received", (data) => {
       const newMessage: Message = {
         id: crypto.randomUUID(),
@@ -59,10 +78,16 @@ export default function GeneralRoom() {
     });
 
     return () => {
+
       socketClient.off("joined general");
       socketClient.off("message received");
     };
   }, [setMessages]);
+
+  const leaveRoom = () => {
+    socketClient.emit("leave room", {roomId : "general", userId : userId, username : ""})
+    router.push("/")
+  }
 
 return <div className="w-full h-screen flex flex-col bg-gray-100">
       {/* 🔹 Header */}
@@ -76,7 +101,7 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
           <button className="border p-2 rounded-xl"><Phone size={24} color="#000"/></button>
         </div>
 
-          <button className="border p-2 rounded-xl"><LogOut size={24} color="#000"/></button>
+          <button onClick={leaveRoom} className="border p-2 rounded-xl"><LogOut size={24} color="#000"/></button>
         </div>
 
       </div>
