@@ -18,12 +18,12 @@ ServerSocket.on("connection", (socket) => {
 
     socket.on("general", () => {
         socket.username = v4() 
+        socket.room = "general"
         socket.join("general")
-        socket.emit("joined general",{
+        ServerSocket.to("general").emit("joined general",{
             username: socket.username,
             room : "general",
-            userId : "System",
-            userIdReal : v4(),
+            userId : socket.username,
             message : ` ${socket.username} has joined the room`,
             messageId : v4(),
             createdAt : Date.now()

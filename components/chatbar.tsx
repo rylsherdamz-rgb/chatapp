@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Message } from "@/context/chatProfileContext";
 import {Send} from "lucide-react"
 import { AuthContext } from "@/context/chatProfileContext";
@@ -7,6 +8,7 @@ import { useContext } from "react";
 
 export default function ChatBar() {
   const context = useContext(AuthContext)
+  const pathname = usePathname()
   if (!context) return;
 
   const {setMessages, messages, userId, room, username} = context
@@ -15,18 +17,19 @@ export default function ChatBar() {
      setMessage(e.target.value) 
   };
   const sendMessage = () => {
+    
   const Inputmessage : Message = {
       id : crypto.randomUUID(),
       text: message as string,
       userId : userId,
       username : username ,
-      roomId : room,
+      roomId : pathname === "/room" ? "general" : room,
       createdAt : Date.now(),
       textId : crypto.randomUUID(),
       type : "user"
     }
       setMessages((prev) => [...prev,Inputmessage]);
-     socketClient.emit("message sent", {roomId: room, message}) 
+     socketClient.emit("message sent", {roomId: pathname === "/room" ? "general" : room, message}) 
      setMessage("")
   };
 

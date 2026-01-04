@@ -26,8 +26,6 @@ export default function GeneralRoom() {
      } 
   }
   useEffect(() => {
-    
-
     socketClient.emit("general")
     socketClient.on("joined general", (data) => {
       setRoom(data.roomId)
@@ -63,7 +61,6 @@ export default function GeneralRoom() {
     return () => {
       socketClient.off("joined general");
       socketClient.off("message received");
-      socketClient.off("general")
     };
   }, [setMessages]);
 
