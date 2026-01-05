@@ -20,8 +20,7 @@ export default function GeneralRoom() {
     const [remotePeerValue, setRemotePeerValue] = useState<string>("")
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
     const currentVideoRef = useRef<HTMLVideoElement>(null) 
-    const peerInstance = useRef<Peer>(null) 
-    const peer = new Peer()
+    const peerInstance = useRef<Peer | null>(null) 
     if (!context) return;
     const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,8 +37,10 @@ export default function GeneralRoom() {
   }
 
   useEffect(() => {
+    const peer = new Peer()
   peer.on("open", (id) => {
     setPeerId(id)
+    socketClient.emit("peer-id", {id , room: "general"})
   })
   
   peer.on("call", (call) => {
@@ -50,7 +51,7 @@ export default function GeneralRoom() {
       if (!currentVideoRef.current) return;
       currentVideoRef.current.srcObject = mediaStream
       currentVideoRef.current?.play()
-      call.answer()
+      call.answer(mediaStream)
       call.on("stream", (remoteMediaStream) => {
       if (!remoteVideoRef) return;
       if (!remoteVideoRef.current) return;
@@ -91,6 +92,7 @@ let  getUserMedia = navigator.mediaDevices.getUserMedia
 
 
   useEffect(() => {
+    
     socketClient.emit("general")
     socketClient.on("joined general", (data) => {
       setRoom(data.roomId)
@@ -109,6 +111,9 @@ let  getUserMedia = navigator.mediaDevices.getUserMedia
 
       setMessages((prev) => [...prev, systemMessage]);
    });
+   socketClient.on("id", (data) => {
+    setRemotePeerValue(data.id)
+   })
  socketClient.on("user leave", (data) => {
       const systemMessage: Message = {
         id: crypto.randomUUID(),
@@ -120,7 +125,6 @@ let  getUserMedia = navigator.mediaDevices.getUserMedia
         textId: crypto.randomUUID(),
         type : "System"
       };
-      setRemotePeerValue(userId)
       setMessages((prev) => [...prev, systemMessage]);
    });
     socketClient.on("message received", (data) => {
@@ -218,7 +222,7 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
         <div ref={messagesEndRef} />
 
       </div>
-        <div className="w-full h-100 flex flex-row gapx-5 bg-green-200">
+        <div className="w-100 h-100 flex flex-row gapx-5 bg-green-200">
           <div className="1/2 h-full bg-red-300">
           <video className="w-full h-full" ref={currentVideoRef}></video>
           </div>

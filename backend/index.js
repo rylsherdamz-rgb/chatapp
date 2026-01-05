@@ -23,12 +23,16 @@ ServerSocket.on("connection", (socket) => {
         ServerSocket.to("general").emit("joined general",{
             username: socket.username,
             room : "general",
-            userId : socket.username,
+            userId : socket.id,
             message : ` ${socket.username} has joined the room`,
             messageId : v4(),
             createdAt : Date.now()
         })
     })
+
+   socket.on("peer-id", ({id, room})=> {
+        socket.to(room).emit("id", {room, id})
+   }) 
 
    socket.on("delete message for all",({messageId, username, roomId}) => {
                socket.to(roomId).emit("message delete", {
