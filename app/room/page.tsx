@@ -45,7 +45,7 @@ export default function GeneralRoom() {
   peer.on("call", (call) => {
     let  getUserMedia = navigator.mediaDevices.getUserMedia  
 
-    getUserMedia({video : true, audio : true}).then((mediaStream) => {
+    getUserMedia({video : true, audio : false}).then((mediaStream) => {
       if (!currentVideoRef) return;
       if (!currentVideoRef.current) return;
       currentVideoRef.current.srcObject = mediaStream
@@ -120,7 +120,7 @@ let  getUserMedia = navigator.mediaDevices.getUserMedia
         textId: crypto.randomUUID(),
         type : "System"
       };
-
+      setRemotePeerValue(userId)
       setMessages((prev) => [...prev, systemMessage]);
    });
     socketClient.on("message received", (data) => {
@@ -157,7 +157,7 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
         </div>
        <div className=" flex flex-row gap-x-10 focus:outline-none">
         <div className="flex gap-x-5">
-          <button className="border p-2 rounded-xl"><Video size={24} color="#000"/></button>
+          <button className="border  p-2 rounded-xl" onClick={ () => call(remotePeerValue)} ><Video size={24} color="#000"/></button>
           <button className="border p-2 rounded-xl"><Phone size={24} color="#000"/></button>
         </div>
 
@@ -183,9 +183,7 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
             );
           }
 
-          <div> </div>
-
-          // ✅ NORMAL MESSAGE
+                    // ✅ NORMAL MESSAGE
           return (
             <div
               key={msg.id}
@@ -218,7 +216,17 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
           );
         })}
         <div ref={messagesEndRef} />
+
       </div>
+        <div className="w-full h-100 flex flex-row gapx-5 bg-green-200">
+          <div className="1/2 h-full bg-red-300">
+          <video className="w-full h-full" ref={currentVideoRef}></video>
+          </div>
+          <div className="1/2 h-full">
+          <video className="w-full h-full bg-blue-3000" ref={remoteVideoRef}></video>
+          </div>
+           </div>
+
 
 
           {/* Chat input */}
