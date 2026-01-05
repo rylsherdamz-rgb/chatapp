@@ -6,6 +6,8 @@ import { AuthContext } from "@/context/chatProfileContext";
 import type {Message} from "@/context/chatProfileContext"
 import { Video, Phone, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Peer from "peerjs"
+
 
 
 export default function GeneralRoom() {
@@ -13,6 +15,13 @@ export default function GeneralRoom() {
 
     const context = useContext(AuthContext)
     const router = useRouter()
+    // could define a type for this to have a better in type for this specific use cares
+    const [peerId, setPeerId] = useState<string>('')
+    const [remotePeerValue, setRemotePeerValue] = useState<string>("")
+    const remoteVideoRef = useRef<HTMLVideoElement>(null)
+    const currentVideoRef = useRef<HTMLVideoElement>(null) 
+    const peerInstance = useRef<Peer>(null) 
+    const peer = new Peer()
     if (!context) return;
     const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -27,6 +36,60 @@ export default function GeneralRoom() {
         ))
      } 
   }
+
+  useEffect(() => {
+  peer.on("open", (id) => {
+    setPeerId(id)
+  })
+  
+  peer.on("call", (call) => {
+    let  getUserMedia = navigator.mediaDevices.getUserMedia  
+
+    getUserMedia({video : true, audio : true}).then((mediaStream) => {
+      if (!currentVideoRef) return;
+      if (!currentVideoRef.current) return;
+      currentVideoRef.current.srcObject = mediaStream
+      currentVideoRef.current?.play()
+      call.answer()
+      call.on("stream", (remoteMediaStream) => {
+      if (!remoteVideoRef) return;
+      if (!remoteVideoRef.current) return;
+
+        remoteVideoRef.current.srcObject = remoteMediaStream
+        remoteVideoRef.current.play()
+      })
+    })
+  })
+  peerInstance.current = peer
+
+  }, [])
+
+
+  const call = (remotePeerId: string) => {
+let  getUserMedia = navigator.mediaDevices.getUserMedia  
+
+    getUserMedia({video : true, audio : true}).then((mediaStream) => {
+      if (!currentVideoRef) return;
+      if (!currentVideoRef.current) return;
+      currentVideoRef.current.srcObject = mediaStream
+      currentVideoRef.current?.play()
+
+      if (!peerInstance.current) return
+      const call = peerInstance.current.call(remotePeerId, mediaStream)  
+
+      call.on("stream", (remoteMediaStream) => {
+      if (!remoteVideoRef) return;
+      if (!remoteVideoRef.current) return;
+
+        remoteVideoRef.current.srcObject = remoteMediaStream
+        remoteVideoRef.current.play()
+ 
+      })
+     })
+
+  }
+
+
   useEffect(() => {
     socketClient.emit("general")
     socketClient.on("joined general", (data) => {
@@ -47,9 +110,6 @@ export default function GeneralRoom() {
       setMessages((prev) => [...prev, systemMessage]);
    });
  socketClient.on("user leave", (data) => {
-      setRoom(data.roomId)
-      setUserId(data.userId)
-      setUsername(data.username)
       const systemMessage: Message = {
         id: crypto.randomUUID(),
         userId: data.userId,
@@ -85,7 +145,7 @@ export default function GeneralRoom() {
   }, [setMessages]);
 
   const leaveRoom = () => {
-    socketClient.emit("leave room", {roomId : "general", userId : userId, username : ""})
+    socketClient.emit("leave room", "general") 
     router.push("/")
   }
 
@@ -122,6 +182,8 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
               </div>
             );
           }
+
+          <div> </div>
 
           // ✅ NORMAL MESSAGE
           return (
