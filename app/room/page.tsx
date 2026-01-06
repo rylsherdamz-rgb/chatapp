@@ -1,150 +1,171 @@
 "use client"
-import { useState, useRef, useContext, useEffect } from "react"
-import { socketClient } from "@/lib/socketClient";
-import ChatRoom from "@/components/chatRoom"
-import { AuthContext } from "@/context/chatProfileContext";
-import type {Message} from "@/context/chatProfileContext"
-import { Video, Phone, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
-import useCall from "@/hooks/useCall"
 
-import type {CallType} from "@/hooks/useCall"
+import { useState, useRef, useContext, useEffect } from "react"
+import { socketClient } from "@/lib/socketClient"
+import ChatRoom from "@/components/chatRoom"
+import { AuthContext } from "@/context/chatProfileContext"
+import type { Message } from "@/context/chatProfileContext"
+import { Video, Phone, LogOut } from "lucide-react"
+import { useRouter } from "next/navigation"
+
+import useCall, { CallType } from "@/hooks/useCall"
+import CallModal from "@/components/CallModal"
 
 export default function GeneralRoom() {
-// Scroll to bottom when messages change
+  const context = useContext(AuthContext)
+  if (!context) return null
 
-    const context = useContext(AuthContext)
-    const currentVideoRef = useRef<HTMLVideoElement>(null)
-    const remoteVideoRef = useRef<HTMLVideoElement>(null)
-    const [type, setType] = useState<CallType>("Video")
-    const router = useRouter()
-    const {call, remotePeerValue, setRemotePeerValue}  = useCall({currentVideoRef, remoteVideoRef, type}) 
-    // could define a type for this to have a better in type for this specific use cares
-   if (!context) return;
-    const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const {
+    messages,
+    userId,
+    setMessages,
+    setRoom,
+    setUserId,
+    setUsername,
+  } = context
+
+  const router = useRouter()
+
+  /* ---------------- Call state ---------------- */
+
+  const currentVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  const [callOpen, setCallOpen] = useState(false)
+  const [callType, setCallType] = useState<CallType>("Video")
+  const [remotePeerId, setRemotePeerId] = useState("")
+
+  const {
+    callPeer,
+    isRinging,
+  } = useCall({
+    currentVideoRef,
+    remoteVideoRef,
+    type: callType,
+  })
+
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
 
-  const deleteMessage = (messageId : string, type : string) => {
-     if (type == "me") {
-        setMessages(prev => prev.filter(
-          message => message.textId != messageId
-        ))
-     } 
-  }
+
   useEffect(() => {
     socketClient.emit("general")
+
     socketClient.on("joined general", (data) => {
       setRoom(data.roomId)
       setUserId(data.userId)
       setUsername(data.username)
-      const systemMessage: Message = {
-        id: crypto.randomUUID(),
-        userId: data.userId,
-        username:data.username, 
-        text: `${data.username} joined the room`,
-        roomId: data.roomId,
-        createdAt: Date.now(),
-        textId: crypto.randomUUID(),
-        type : "System"
-      };
 
-      setMessages((prev) => [...prev, systemMessage]);
-   });
-   socketClient.on("id", (data) => {
-    setRemotePeerValue(data.id)
-   })
- socketClient.on("user leave", (data) => {
-      const systemMessage: Message = {
-        id: crypto.randomUUID(),
-        userId: data.userId,
-        username:data.username, 
-        text: `${data.username} leave the room`,
-        roomId: data.roomId,
-        createdAt: Date.now(),
-        textId: crypto.randomUUID(),
-        type : "System"
-      };
-      setMessages((prev) => [...prev, systemMessage]);
-   });
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          userId: data.userId,
+          username: data.username,
+          text: `${data.username} joined the room`,
+          roomId: data.roomId,
+          createdAt: Date.now(),
+          textId: crypto.randomUUID(),
+          type: "System",
+        },
+      ])
+    })
+
+    socketClient.on("id", (data) => {
+      setRemotePeerId(data.id)
+    })
+
     socketClient.on("message received", (data) => {
-      const newMessage: Message = {
-        id: crypto.randomUUID(),
-        userId: data.userId,
-        username: data.user,
-        text: data.message,
-        roomId: data.roomId,
-        createdAt: Date.now(),
-        textId : data.messageId,
-        type : "user"
-      };
-      setMessages((prev) => [...prev, newMessage]);
-    });
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          userId: data.userId,
+          username: data.user,
+          text: data.message,
+          roomId: data.roomId,
+          createdAt: Date.now(),
+          textId: data.messageId,
+          type: "user",
+        },
+      ])
+    })
 
     return () => {
+      socketClient.off("joined general")
+      socketClient.off("message received")
+      socketClient.off("id")
+    }
+  }, [])
 
-      socketClient.off("joined general");
-      socketClient.off("message received");
-    };
-  }, [setMessages]);
 
   const leaveRoom = () => {
-    socketClient.emit("leave room", "general") 
+    socketClient.emit("leave room", "general")
     router.push("/")
   }
 
-return <div className="w-full h-screen flex flex-col bg-gray-100">
-      {/* 🔹 Header */}
-      <div className="flex relative items-center justify-between gap-x-4 text-black bg-white p-4 shadow-sm">
-        <div className="flex flex-row gap-x-5">
-        <p className="text-xl font-semibold">General</p>
-        </div>
-       <div className=" flex flex-row gap-x-10 focus:outline-none">
-        <div className="flex gap-x-5">
-          <button className="border  p-2 rounded-xl" onClick={ () => call(remotePeerValue)} ><Video size={24} color="#000"/></button>
-          <button className="border p-2 rounded-xl"><Phone size={24} color="#000"/></button>
-        </div>
+  const startCall = (type: CallType) => {
+    setCallType(type)
+    setCallOpen(true)
+  }
 
-          <button onClick={leaveRoom} className="border p-2 rounded-xl"><LogOut size={24} color="#000"/></button>
+
+  return (
+    <div className="flex h-screen flex-col bg-gray-100">
+      {/* HEADER */}
+      <header className="flex items-center justify-between bg-white px-4 py-3 shadow-sm">
+        <h1 className="text-lg font-semibold text-black">General</h1>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => startCall("Video")}
+            className="rounded-xl border p-2 hover:bg-gray-100"
+          >
+            <Video size={22} />
+          </button>
+
+          <button
+            onClick={() => startCall("Audio")}
+            className="rounded-xl border p-2 hover:bg-gray-100"
+          >
+            <Phone size={22} />
+          </button>
+
+          <button
+            onClick={leaveRoom}
+            className="rounded-xl border p-2 hover:bg-gray-100"
+          >
+            <LogOut size={22} />
+          </button>
         </div>
+      </header>
 
-      </div>
-
-      {/* 🔹 Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* MESSAGES */}
+      <main className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.map((msg) => {
-          const isMe = msg.userId === userId;
-          const isSystem = msg.type === "System";
+          const isMe = msg.userId === userId
+          const isSystem = msg.type === "System"
 
-          // ✅ SYSTEM MESSAGE (CENTERED)
           if (isSystem) {
             return (
               <div key={msg.id} className="flex justify-center">
-                <div className="px-4 py-1 text-sm text-gray-500 bg-gray-200 rounded-full">
+                <span className="rounded-full bg-gray-200 px-4 py-1 text-sm text-gray-600">
                   {msg.text}
-                </div>
+                </span>
               </div>
-            );
+            )
           }
 
-                    // ✅ NORMAL MESSAGE
           return (
             <div
               key={msg.id}
-              className={`flex items-end ${
-                isMe ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
-              {!isMe && (
-                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-2">
-                  {msg.username?.charAt(0).toUpperCase()}
-                </div>
-              )}
-
               <div
-                className={`max-w-[70%] px-4 py-2 rounded-2xl break-words ${
+                className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
                   isMe
                     ? "bg-green-500 text-white rounded-br-none"
                     : "bg-gray-300 text-black rounded-bl-none"
@@ -152,33 +173,26 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
               >
                 {msg.text}
               </div>
-
-              {isMe && (
-                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold ml-2">
-                  {msg.username?.charAt(0).toUpperCase()}
-                </div>
-              )}
             </div>
-          );
+          )
         })}
         <div ref={messagesEndRef} />
+      </main>
 
-      </div>
-        <div className="w-100 h-100 absolute  flex flex-row gapx-5 bg-green-200">
-          <div className="1/2 h-full bg-red-300">
-          <video className="w-full h-full" ref={currentVideoRef}></video>
-          </div>
-          <div className="1/2 h-full">
-          <video className="w-full h-full bg-blue-3000" ref={remoteVideoRef}></video>
-          </div>
-           </div>
-
-
-
-          {/* Chat input */}
-      <div className="p-4  ">
+      {/* INPUT */}
+      <div className="border-t bg-white p-3">
         <ChatRoom />
       </div>
 
+      {/* CALL MODAL */}
+      <CallModal
+        open={callOpen || isRinging}
+        onClose={() => setCallOpen(false)}
+        remotePeerId={remotePeerId}
+        type={callType}
+        currentVideoRef={currentVideoRef}
+        remoteVideoRef={remoteVideoRef}
+      />
     </div>
+  )
 }
