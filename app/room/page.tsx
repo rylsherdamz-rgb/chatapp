@@ -8,7 +8,7 @@ import { Video, Phone, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useCall from "@/hooks/useCall"
 
-import type {callType} from "@/hooks/useCall"
+import type {CallType} from "@/hooks/useCall"
 
 export default function GeneralRoom() {
 // Scroll to bottom when messages change
@@ -16,7 +16,7 @@ export default function GeneralRoom() {
     const context = useContext(AuthContext)
     const currentVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
-    const [type, setType] = useState<callType>("Video")
+    const [type, setType] = useState<CallType>("Video")
     const router = useRouter()
     const {call, remotePeerValue, setRemotePeerValue}  = useCall({currentVideoRef, remoteVideoRef, type}) 
     // could define a type for this to have a better in type for this specific use cares
