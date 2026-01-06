@@ -20,7 +20,6 @@ export default function GeneralRoom() {
     const router = useRouter()
     const {call, remotePeerValue, setRemotePeerValue}  = useCall({currentVideoRef, remoteVideoRef, type}) 
     // could define a type for this to have a better in type for this specific use cares
-    
    if (!context) return;
     const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -36,7 +35,6 @@ export default function GeneralRoom() {
      } 
   }
   useEffect(() => {
-    
     socketClient.emit("general")
     socketClient.on("joined general", (data) => {
       setRoom(data.roomId)

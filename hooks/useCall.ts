@@ -1,75 +1,128 @@
-import {useEffect, useState, useRef} from "react"
-import {socketClient }  from "@/lib/socketClient"
-import Peer from "peerjs"
+import { useEffect, useState, useRef, useCallback } from "react"
+import Peer, { MediaConnection } from "peerjs"
+import { socketClient } from "@/lib/socketClient"
 
-export type callType = "Video" | "Audio";
+export type CallType = "Video" | "Audio"
 
-
-interface useCallProp {
-    currentVideoRef : React.RefObject<HTMLVideoElement | null>,
-    remoteVideoRef :  React.RefObject<HTMLVideoElement | null>
-    type :  callType
+interface UseCallProps {
+  currentVideoRef: React.RefObject<HTMLVideoElement | null>
+  remoteVideoRef: React.RefObject<HTMLVideoElement | null>
+  type: CallType
 }
 
-export default function useCall({ currentVideoRef, remoteVideoRef, type }: useCallProp) {
-    const peerInstance = useRef<Peer | null>(null) 
-    const [peerId, setPeerId] = useState<string>('')
-    const [remotePeerValue, setRemotePeerValue] = useState<string>("")
-      useEffect(() => {
-    const peer = new Peer()
-  peer.on("open", (id) => {
-    setPeerId(id)
-    socketClient.emit("peer-id", {id , room: "general"})
-  })
-  peer.on("call", (call) => {
-    let  getUserMedia = navigator.mediaDevices.getUserMedia  
+export default function useCall({
+  currentVideoRef,
+  remoteVideoRef,
+  type,
+}: UseCallProps) {
+  const peerRef = useRef<Peer | null>(null)
+  const localStreamRef = useRef<MediaStream | null>(null)
+  const incomingCallRef = useRef<MediaConnection | null>(null)
 
-    getUserMedia({video : type === "Video" ? true : false , audio : false}).then((mediaStream) => {
-      if (!currentVideoRef) return;
-      if (!currentVideoRef.current) return;
-      currentVideoRef.current.srcObject = mediaStream
-      currentVideoRef.current?.play()
-      call.answer(mediaStream)
-      call.on("stream", (remoteMediaStream) => {
-      if (!remoteVideoRef) return;
-      if (!remoteVideoRef.current) return;
+  const [peerId, setPeerId] = useState("")
+  const [isRinging, setIsRinging] = useState(false)
 
-        remoteVideoRef.current.srcObject = remoteMediaStream
-        remoteVideoRef.current.play()
-      })
+
+  const attachStream = (
+    ref: React.RefObject<HTMLVideoElement | null>,
+    stream: MediaStream
+  ) => {
+    if (!ref.current) return
+    ref.current.srcObject = stream
+    ref.current.play()
+  }
+
+  const getMedia = async () => {
+    return navigator.mediaDevices.getUserMedia({
+      video: type === "Video",
+      audio: true,
     })
-  })
-  peerInstance.current = peer
-   
-  return () => peer.destroy()
+  }
+
+  const cleanupStreams = () => {
+    localStreamRef.current?.getTracks().forEach(t => t.stop())
+    localStreamRef.current = null
+  }
+
+  /* -------------------- Peer Setup -------------------- */
+
+  useEffect(() => {
+    const peer = new Peer()
+    peerRef.current = peer
+
+    peer.on("open", id => {
+      setPeerId(id)
+      socketClient.emit("peer-id", { id, room: "general" })
+    })
+
+    peer.on("call", call => {
+      incomingCallRef.current = call
+      setIsRinging(true)
+    })
+
+    return () => {
+      cleanupStreams()
+      peer.destroy()
+    }
+  }, [])
+
+  /* -------------------- Call Actions -------------------- */
+
+  const callPeer = useCallback(
+    async (remotePeerId: string) => {
+      if (!peerRef.current) return
+
+      const stream = await getMedia()
+      localStreamRef.current = stream
+      attachStream(currentVideoRef, stream)
+
+      const call = peerRef.current.call(remotePeerId, stream)
+
+      call.on("stream", remoteStream => {
+        attachStream(remoteVideoRef, remoteStream)
+      })
+
+      call.on("close", cleanupStreams)
+    },
+    [type]
+  )
+
+  const answerCall = useCallback(async () => {
+    if (!incomingCallRef.current) return
+
+    const stream = await getMedia()
+    localStreamRef.current = stream
+    attachStream(currentVideoRef, stream)
+
+    incomingCallRef.current.answer(stream)
+
+    incomingCallRef.current.on("stream", remoteStream => {
+      attachStream(remoteVideoRef, remoteStream)
+    })
+
+    incomingCallRef.current.on("close", cleanupStreams)
+
+    setIsRinging(false)
+  }, [type])
+
+  const rejectCall = useCallback(() => {
+    incomingCallRef.current?.close()
+    incomingCallRef.current = null
+    setIsRinging(false)
+  }, [])
+
+  const endCall = useCallback(() => {
+    incomingCallRef.current?.close()
+    cleanupStreams()
   }, [])
 
 
-
-    const call = (remotePeerId: string) => {
-    let  getUserMedia = navigator.mediaDevices.getUserMedia  
-
-    getUserMedia({video : type === "Video" ? true : false  , audio :   true}).then((mediaStream) => {
-      if (!currentVideoRef) return;
-      if (!currentVideoRef.current) return;
-      currentVideoRef.current.srcObject = mediaStream
-      currentVideoRef.current?.play()
-
-      if (!peerInstance.current) return
-      const call = peerInstance.current.call(remotePeerId, mediaStream)  
-
-      call.on("stream", (remoteMediaStream) => {
-      if (!remoteVideoRef) return;
-      if (!remoteVideoRef.current) return;
-
-        remoteVideoRef.current.srcObject = remoteMediaStream
-        remoteVideoRef.current.play()
- 
-      })
-     })
-
+  return {
+    peerId,
+    isRinging,
+    callPeer,
+    answerCall,
+    rejectCall,
+    endCall,
   }
- 
-
-    return {call, remotePeerValue, setRemotePeerValue}
 }
