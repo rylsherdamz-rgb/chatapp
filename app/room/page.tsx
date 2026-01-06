@@ -6,22 +6,22 @@ import { AuthContext } from "@/context/chatProfileContext";
 import type {Message} from "@/context/chatProfileContext"
 import { Video, Phone, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Peer from "peerjs"
+import useCall from "@/hooks/useCall"
 
-
+import type {callType} from "@/hooks/useCall"
 
 export default function GeneralRoom() {
 // Scroll to bottom when messages change
 
     const context = useContext(AuthContext)
-    const router = useRouter()
-    // could define a type for this to have a better in type for this specific use cares
-    const [peerId, setPeerId] = useState<string>('')
-    const [remotePeerValue, setRemotePeerValue] = useState<string>("")
+    const currentVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
-    const currentVideoRef = useRef<HTMLVideoElement>(null) 
-    const peerInstance = useRef<Peer | null>(null) 
-    if (!context) return;
+    const [type, setType] = useState<callType>("Video")
+    const router = useRouter()
+    const {call, remotePeerValue, setRemotePeerValue}  = useCall({currentVideoRef, remoteVideoRef, type}) 
+    // could define a type for this to have a better in type for this specific use cares
+    
+   if (!context) return;
     const {messages, userId, setMessages, setRoom, setUserId, setUsername, room} = context
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -35,62 +35,6 @@ export default function GeneralRoom() {
         ))
      } 
   }
-
-  useEffect(() => {
-    const peer = new Peer()
-  peer.on("open", (id) => {
-    setPeerId(id)
-    socketClient.emit("peer-id", {id , room: "general"})
-  })
-  
-  peer.on("call", (call) => {
-    let  getUserMedia = navigator.mediaDevices.getUserMedia  
-
-    getUserMedia({video : true, audio : false}).then((mediaStream) => {
-      if (!currentVideoRef) return;
-      if (!currentVideoRef.current) return;
-      currentVideoRef.current.srcObject = mediaStream
-      currentVideoRef.current?.play()
-      call.answer(mediaStream)
-      call.on("stream", (remoteMediaStream) => {
-      if (!remoteVideoRef) return;
-      if (!remoteVideoRef.current) return;
-
-        remoteVideoRef.current.srcObject = remoteMediaStream
-        remoteVideoRef.current.play()
-      })
-    })
-  })
-  peerInstance.current = peer
-
-  }, [])
-
-
-  const call = (remotePeerId: string) => {
-let  getUserMedia = navigator.mediaDevices.getUserMedia  
-
-    getUserMedia({video : true, audio : true}).then((mediaStream) => {
-      if (!currentVideoRef) return;
-      if (!currentVideoRef.current) return;
-      currentVideoRef.current.srcObject = mediaStream
-      currentVideoRef.current?.play()
-
-      if (!peerInstance.current) return
-      const call = peerInstance.current.call(remotePeerId, mediaStream)  
-
-      call.on("stream", (remoteMediaStream) => {
-      if (!remoteVideoRef) return;
-      if (!remoteVideoRef.current) return;
-
-        remoteVideoRef.current.srcObject = remoteMediaStream
-        remoteVideoRef.current.play()
- 
-      })
-     })
-
-  }
-
-
   useEffect(() => {
     
     socketClient.emit("general")
@@ -155,7 +99,7 @@ let  getUserMedia = navigator.mediaDevices.getUserMedia
 
 return <div className="w-full h-screen flex flex-col bg-gray-100">
       {/* 🔹 Header */}
-      <div className="flex items-center justify-between gap-x-4 text-black bg-white p-4 shadow-sm">
+      <div className="flex relative items-center justify-between gap-x-4 text-black bg-white p-4 shadow-sm">
         <div className="flex flex-row gap-x-5">
         <p className="text-xl font-semibold">General</p>
         </div>
@@ -222,7 +166,7 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
         <div ref={messagesEndRef} />
 
       </div>
-        <div className="w-100 h-100 flex flex-row gapx-5 bg-green-200">
+        <div className="w-100 h-100 absolute  flex flex-row gapx-5 bg-green-200">
           <div className="1/2 h-full bg-red-300">
           <video className="w-full h-full" ref={currentVideoRef}></video>
           </div>
@@ -234,7 +178,6 @@ return <div className="w-full h-screen flex flex-col bg-gray-100">
 
 
           {/* Chat input */}
-      
       <div className="p-4  ">
         <ChatRoom />
       </div>
