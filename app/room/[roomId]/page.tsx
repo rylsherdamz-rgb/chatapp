@@ -7,19 +7,48 @@ import type { Message } from "@/context/chatProfileContext";
 import { AuthContext } from "@/context/chatProfileContext";
 import { socketClient } from "@/lib/socketClient";
 import ChatRoom from "@/components/chatRoom";
+import {useRouter} from "next/navigation"
+import useCall, { CallType } from "@/hooks/useCall";
+import CallModal from "@/components/CallModal";
 
 export default function Room() {
   const context = useContext(AuthContext);
+  const router = useRouter()
   if (!context) throw new Error("There isn’t a context use");
 
   const { username, room, messages, setMessages, userId } = context;
 
-  const [copy, setCopy] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  const [callOpen, setCallOpen] = useState(false)
+  const [callType, setCallType] = useState<CallType>("Video")
+  const [remotePeerId, setRemotePeerId] = useState("")
+
+  const {
+    callPeer,
+    isRinging,
+  } = useCall({
+    currentVideoRef,
+    remoteVideoRef,
+    type: callType,
+  })
 
   const leaveRoom = () => {
-    socketClient.emit("leave");
-  };
+    socketClient.emit("leave room", "general")
+    setMessages([])
+    router.push("/")
+  }
+
+  const startCall = (type: CallType) => {
+    setCallType(type)
+    setCallOpen(true)
+  }
+
+
+
+  const [copy, setCopy] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const copyRoomId = async () => {
     try {
@@ -83,9 +112,15 @@ export default function Room() {
 
       setMessages((prev) => [...prev, newMessage]);
     });
+    socketClient.on("id", (data) => {
+      setRemotePeerId(data.id)
+    })
+
+
 
     return () => {
       socketClient.off("user joined");
+      socketClient.off("id")
       socketClient.off("user-ready");
       socketClient.off("message received");
       socketClient.off("room-ready")
@@ -109,11 +144,11 @@ export default function Room() {
         </div>
        <div className=" flex flex-row gap-x-10 focus:outline-none">
         <div className="flex gap-x-5">
-          <button className="border p-2 rounded-xl"><Video size={24} color="#000"/></button>
-          <button className="border p-2 rounded-xl"><Phone size={24} color="#000"/></button>
+          <button onClick={()=> startCall("Video")} className="border p-2 rounded-xl"><Video size={24} color="#000"/></button>
+          <button onClick={() => startCall("Audio")} className="border p-2 rounded-xl"><Phone size={24} color="#000"/></button>
         </div>
 
-          <button className="border p-2 rounded-xl"><LogOut size={24} color="#000"/></button>
+          <button onClick={leaveRoom} className="border p-2 rounded-xl"><LogOut size={24} color="#000"/></button>
         </div>
 
       </div>
@@ -174,6 +209,15 @@ export default function Room() {
       <div className="p-4 bg-white border-t">
         <ChatRoom />
       </div>
+      <CallModal
+        open={callOpen || isRinging}
+        onClose={() => setCallOpen(false)}
+        remotePeerId={remotePeerId}
+        type={callType}
+        currentVideoRef={currentVideoRef}
+        remoteVideoRef={remoteVideoRef}
+      />
+ 
     </div>
   );
 }

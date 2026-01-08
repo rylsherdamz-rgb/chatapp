@@ -14,7 +14,6 @@ import CallModal from "@/components/CallModal"
 export default function GeneralRoom() {
   const context = useContext(AuthContext)
   if (!context) return null
-
   const {
     messages,
     userId,
@@ -104,6 +103,7 @@ export default function GeneralRoom() {
 
   const leaveRoom = () => {
     socketClient.emit("leave room", "general")
+    setMessages([])
     router.push("/")
   }
 
@@ -116,7 +116,7 @@ export default function GeneralRoom() {
   return (
     <div className="flex h-screen flex-col bg-gray-100">
       {/* HEADER */}
-      <header className="flex items-center justify-between bg-white px-4 py-3 shadow-sm">
+      <header className="flex items-center justify-between bg-white px-4 text-black py-3 shadow-sm">
         <h1 className="text-lg font-semibold text-black">General</h1>
 
         <div className="flex items-center gap-3">
